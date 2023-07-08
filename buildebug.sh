@@ -12,7 +12,7 @@ export PATH=${CLANG_PATH}:${PATH}
 export CLANG_TRIPLE=aarch64-linux-gnu-
 export CROSS_COMPILE=$MAIN/clang-r416183b/bin/aarch64-linux-gnu- CC=clang CXX=clang++
 
-DEFCONFIG="lineageos_marble_defconfig"
+DEFCONFIG="marble_defconfig"
 
 # Paths
 KERNEL_DIR=`pwd`
