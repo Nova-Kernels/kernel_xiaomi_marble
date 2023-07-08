@@ -3395,10 +3395,9 @@ static void kfree_rcu_monitor(struct work_struct *work)
                 // a previous RCU batch is in progress, it means that
                 // immediately to queue another one is not possible so
                 // in that case the monitor work is rearmed.
-		if (need_wait_for_krwp_work(krwp))
-			continue;
-
-		if (need_offload_krc(krcp)) {
+		if ((krcp->bkvhead[0] && !krwp->bkvhead_free[0]) ||
+			(krcp->bkvhead[1] && !krwp->bkvhead_free[1]) ||
+				(krcp->head && !krwp->head_free)) {
 			// Channel 1 corresponds to the SLAB-pointer bulk path.
 			// Channel 2 corresponds to vmalloc-pointer bulk path.
 			for (j = 0; j < FREE_N_CHANNELS; j++) {
