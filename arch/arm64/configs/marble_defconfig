@@ -355,6 +355,8 @@ CONFIG_ARCH_SPRD=y
 # CONFIG_ARCH_XGENE is not set
 # CONFIG_ARCH_ZX is not set
 # CONFIG_ARCH_ZYNQMP is not set
+CONFIG_MACH_XIAOMI=y
+CONFIG_MACH_XIAOMI_MARBLE=y
 # end of Platform selection
 
 #
