@@ -3239,7 +3239,6 @@ static int tcp_clean_rtx_queue(struct sock *sk, u32 prior_fack,
 
 	for (skb = skb_rb_first(&sk->tcp_rtx_queue); skb; skb = next) {
 		struct tcp_skb_cb *scb = TCP_SKB_CB(skb);
-		const u32 start_seq = scb->seq;
 		u8 sacked = scb->sacked;
 		u32 acked_pcount;
 
