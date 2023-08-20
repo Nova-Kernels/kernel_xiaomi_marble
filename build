@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# Defined path
+MainPath="$(pwd)"
+clang="$(pwd)/../clang"
+Any="$(pwd)/../Any"
+
+# Make flashable zip
+MakeZip() {
+    if [ ! -d $Any ]; then
+        git clone https://github.com/Wahid7852/Anykernel_marble.git $Any
+    fi
+    cp -af $MainPath/out/arch/arm64/boot/Image.gz $Any
+    sed -i "s/kernel.string=.*/kernel.string=$KERNEL_NAME by Abdul7852/g" anykernel.sh
+    zip -r9 $MainPath/"NoVA-Marble-$ZIP_KERNEL_VERSION.zip" * -x .git README.md *placeholder
+    cd $MainPath
+}
+
+# Clone compiler
+Clone_clang() {
+ 
+    if [ ! -d $clang ]; then
+        git clone --depth=1 https://github.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r416183b $clang
+    fi
+    clang_Version="$($clang/bin/clang --version | grep clang)"
+}
+
+# Defined config
+HeadCommit="$(git log --pretty=format:'%h' -1)"
+export ARCH="arm64"
+export SUBARCH="arm64"
+export KBUILD_BUILD_USER="Abdul7852"
+export KBUILD_BUILD_HOST="-Stable"
+Defconfig="marble_defconfig"
+KERNEL_NAME=$(cat "$MainPath/arch/arm64/configs/$Defconfig" | grep "CONFIG_LOCALVERSION=" | sed 's/CONFIG_LOCALVERSION="-*//g' | sed 's/"*//g' )
+ZIP_KERNEL_VERSION="5.10.$(cat "$MainPath/Makefile" | grep "SUBLEVEL =" | sed 's/SUBLEVEL = *//g')"
+
+# Start building
+
+Build_clang() {
+    Compiler=clang
+    TIME=$(date +"%m%d%H%M")
+    BUILD_START=$(date +"%s")
+    make  -j$(nproc --all)  O=out ARCH=arm64 SUBARCH=arm64 $Defconfig
+    exec 2> >(tee -a out/error.log >&2)
+    make  -j$(nproc --all)  O=out \
+                            PATH="$clang/bin:/usr/bin:$PATH" \
+                            CC=clang \
+							LLVM=1 \
+							LLVM_IAS=1 
+}
+
+# End with success or fail
+End() {
+    if [ -e $MainPath/out/arch/arm64/boot/Image.gz ]; then
+        BUILD_END=$(date +"%s")
+        DIFF=$((BUILD_END - BUILD_START))
+        MakeZip
+        ZIP=$(echo *$clang*$TIME*.zip)
+
+        echo "Build success in : $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
+       
+    else
+        BUILD_END=$(date +"%s")
+        DIFF=$((BUILD_END - BUILD_START))
+
+        echo "Build fail in : $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
+
+    fi
+}
+
+# Build choices
+clang() {
+    Clone_clang
+    Build_clang
+    End
+}
